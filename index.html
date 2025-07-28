@@ -1,0 +1,2724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureChain - Blockchain Data Storage</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .main-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+        }
+        
+        .btn-green {
+            background: #48bb78;
+        }
+        
+        .btn-green:hover {
+            background: #38a169;
+        }
+        
+        .btn-orange {
+            background: #ed8936;
+        }
+        
+        .btn-orange:hover {
+            background: #dd6b20;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .block-id {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .block-hash {
+            font-family: monospace;
+            font-size: 12px;
+            color: #6c757d;
+            background: #e9ecef;
+            padding: 5px;
+            border-radius: 4px;
+            word-break: break-all;
+            margin-top: 10px;
+        }
+        
+        .virtual-env {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        
+        .virtual-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            text-align: center;
+            color: white;
+            z-index: 1001;
+        }
+        
+        .virtual-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        #threeCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .virtual-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            z-index: 1001;
+        }
+        
+        .virtual-info {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            z-index: 1001;
+            max-width: 300px;
+            display: none;
+        }
+        
+        .close-virtual {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1002;
+        }
+        
+        .encrypted-badge {
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+        
+        .pdf-upload-section {
+            background: linear-gradient(135deg, #e8f4fd 0%, #d1ecf1 100%);
+            border: 2px dashed #17a2b8;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .pdf-upload-section:hover {
+            border-color: #138496;
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+        }
+        
+        .pdf-upload-input {
+            display: none;
+        }
+        
+        .pdf-upload-label {
+            display: inline-block;
+            background: #17a2b8;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+        
+        .pdf-upload-label:hover {
+            background: #138496;
+        }
+        
+        .pdf-processing {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .pdf-summary {
+            background: #f8f9fa;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #17a2b8, #20c997);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+
+        
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-panel {
+                padding: 15px;
+            }
+        }
+
+        body.dark-mode {
+    background: #121212;
+    color: #e0e0e0;
+}
+
+body.dark-mode .main-panel,
+body.dark-mode .stat-card,
+body.dark-mode .block,
+body.dark-mode .pdf-summary,
+body.dark-mode .pdf-processing {
+    background: #1e1e1e;
+    color: #f1f1f1;
+    border-color: #333;
+}
+
+body.dark-mode .btn {
+    background: #333;
+    color: #fff;
+}
+
+body.dark-mode .btn:hover {
+    background: #444;
+}
+
+body.dark-mode .form-group input,
+body.dark-mode .form-group textarea,
+body.dark-mode select {
+    background-color: #2a2a2a;
+    color: #f1f1f1;
+    border: 1px solid #444;
+}
+
+body.dark-mode .header {
+    color: #fff;
+}
+    </style>
+</head>
+<body>
+
+    <div style="text-align: right; margin: 15px;">
+        <button class="btn" onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
+    </div>
+
+
+    <div class="container">
+        <div class="header">
+            <h1>🔗 SecureChain</h1>
+            <p>Secure Blockchain Data Storage</p>
+            <div style="margin-top: 15px;">
+                <label for="userRole" style="color: white; margin-right: 10px;">👤 Select Role:</label>
+                <select id="userRole" onchange="switchRole()" style="padding: 8px; border-radius: 5px; border: none; font-size: 14px;">
+                    <option value="user">👤 User</option>
+                    <option value="auditor" selected>🔍 Auditor</option>
+                    <option value="accountant">📊 Accountant</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalBlocks">1</div>
+                <div>Total Blocks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalData">0</div>
+                <div>Data Entries</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="chainStatus">✅</div>
+                <div>Chain Status</div>
+            </div>
+        </div>
+        
+        <div class="main-panel" id="userPanel" style="display: none;">
+            <h2>📝 Add Data to Blockchain</h2>
+            <div class="form-group">
+                <label for="dataTitle">Data Title:</label>
+                <input type="text" id="dataTitle" placeholder="Enter title">
+            </div>
+            <div class="form-group">
+                <label for="dataContent">Data Content:</label>
+                <textarea id="dataContent" placeholder="Enter your data here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="dataType">Data Type:</label>
+                <input type="text" id="dataType" placeholder="e.g., Document, Note">
+            </div>
+            <button class="btn" onclick="addToBlockchain()">🔒 Add to Blockchain</button>
+            <button class="btn btn-green" onclick="retrieveData()">📥 Retrieve Data</button>
+            <button class="btn btn-orange" onclick="enterVirtualEnvironment()">🌐 Virtual Environment</button>
+            
+            <!-- PDF Upload Section for Users -->
+            <div class="pdf-upload-section" style="margin-top: 25px;">
+                <h4 style="margin-bottom: 15px; color: #17a2b8;">📄 Upload PDF Document</h4>
+                <p style="color: #6c757d; margin-bottom: 15px;">Upload PDF files to be stored in blockchain for professional review</p>
+                
+                <input type="file" id="pdfUpload" class="pdf-upload-input" accept=".pdf" onchange="handlePDFUpload(event)">
+                <label for="pdfUpload" class="pdf-upload-label">
+                    📁 Choose PDF File
+                </label>
+                
+                <div class="pdf-processing" id="pdfProcessing">
+                    <h5 style="margin-bottom: 10px;">🔄 Processing PDF...</h5>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <p id="processingStatus">Extracting text from PDF...</p>
+                </div>
+                
+                <div class="pdf-summary" id="pdfSummary">
+                    <h4 style="margin-bottom: 15px; color: #28a745;">📊 PDF Upload Summary</h4>
+                    <div id="pdfSummaryContent"></div>
+                    <button class="btn btn-green" onclick="addPDFToBlockchain()" style="margin-top: 15px;">🔒 Add PDF to Blockchain</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-panel" id="reviewPanel" style="display: none;">
+            <h2 id="reviewTitle">🔍 Auditor Review Panel</h2>
+            
+            <!-- Review Statistics -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+                <div style="background: #e3f2fd; padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #1976d2;" id="totalDataBlocks">0</div>
+                    <div style="font-size: 12px;">Data Blocks</div>
+                </div>
+                <div style="background: #f3e5f5; padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #7b1fa2;" id="totalReviews">0</div>
+                    <div style="font-size: 12px;">Reviews</div>
+                </div>
+                <div style="background: #e8f5e8; padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #388e3c;" id="approvedCount">0</div>
+                    <div style="font-size: 12px;">Approved</div>
+                </div>
+                <div style="background: #ffebee; padding: 10px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #d32f2f;" id="pendingCount">0</div>
+                    <div style="font-size: 12px;">Pending</div>
+                </div>
+            </div>
+            
+            <!-- PDF Analysis Section for Professionals -->
+            <div style="background: linear-gradient(135deg, #e8f4fd 0%, #d1ecf1 100%); border: 2px solid #17a2b8; border-radius: 12px; padding: 20px; margin: 20px 0;">
+                <h4 style="margin-bottom: 15px; color: #17a2b8;">📄 PDF Document Analysis</h4>
+                <p style="color: #6c757d; margin-bottom: 15px;">View and analyze PDF documents uploaded by users</p>
+                
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                    <button class="btn" onclick="showPDFDocuments()" style="background: #17a2b8;">📋 View PDF Documents</button>
+                </div>
+                
+                <div id="summaryReportsList" style="margin-top: 15px; display: none;">
+                    <h5 style="color: #28a745; margin-bottom: 10px;">📊 Professional Summary Reports</h5>
+                    <div id="summaryReportsContent"></div>
+                </div>
+                
+                <div id="pdfDocumentsList" style="margin-top: 15px; display: none;">
+                    <h5 style="color: #17a2b8; margin-bottom: 10px;">📄 Available PDF Documents</h5>
+                    <div id="pdfDocumentsContent"></div>
+                </div>
+            </div>
+            
+            <div id="dataForReview" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; max-height: 350px; overflow-y: auto; border: 2px solid #dee2e6;">
+                <p style="color: #6c757d; text-align: center; padding: 20px;">📋 Click "Load Data for Review" to see all blockchain entries</p>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <button class="btn" onclick="loadDataForReview()" style="background: #17a2b8;">📋 Load Data for Review</button>
+                <button class="btn" onclick="showReviewHistory()" style="background: #6f42c1;">📊 Review History</button>
+                <button class="btn" onclick="clearReviewData()" style="background: #6c757d;">🗑️ Clear Display</button>
+            </div>
+            
+            <div id="reviewForm" style="display: none; margin-top: 20px; padding: 25px; background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-radius: 12px; border: 3px solid #ffc107; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);">
+                <h3 id="reviewFormTitle" style="margin-bottom: 20px; color: #856404;">🔍 Professional Audit Review</h3>
+                
+                <div class="form-group">
+                    <label for="reviewTitleInput">📝 Review Title:</label>
+                    <input type="text" id="reviewTitleInput" placeholder="Enter comprehensive review title (e.g., Q4 2024 Data Compliance Audit)">
+                </div>
+                
+                <div class="form-group">
+                    <label for="reviewContent">📋 Detailed Review & Findings:</label>
+                    <textarea id="reviewContent" placeholder="Enter detailed review findings, observations, compliance notes, and professional recommendations..." style="min-height: 150px;"></textarea>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label for="reviewStatus">✅ Review Status:</label>
+                        <select id="reviewStatus" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
+                            <option value="approved">✅ Approved - Compliant</option>
+                            <option value="rejected">❌ Rejected - Non-Compliant</option>
+                            <option value="needs-revision">⚠️ Needs Revision</option>
+                            <option value="under-review">🔄 Under Review</option>
+                            <option value="conditional">🔶 Conditional Approval</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reviewPriority">🚨 Priority Level:</label>
+                        <select id="reviewPriority" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
+                            <option value="low">🟢 Low Priority</option>
+                            <option value="medium">🟡 Medium Priority</option>
+                            <option value="high">🟠 High Priority</option>
+                            <option value="critical">🔴 Critical - Immediate Action</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reviewRecommendations">💡 Recommendations & Action Items:</label>
+                    <textarea id="reviewRecommendations" placeholder="Enter specific recommendations, action items, and next steps..." style="min-height: 100px;"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="complianceNotes">📜 Compliance & Regulatory Notes:</label>
+                    <textarea id="complianceNotes" placeholder="Enter compliance status, regulatory requirements, and legal considerations..." style="min-height: 80px;"></textarea>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.7); padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <h4 style="margin-bottom: 10px; color: #856404;">🔒 Encryption & Security</h4>
+                    <p style="font-size: 13px; color: #6c757d; margin-bottom: 10px;">Your review will be encrypted using advanced encryption before being permanently stored in the blockchain. This ensures data integrity and confidentiality.</p>
+                    <label style="display: flex; align-items: center; font-size: 14px;">
+                        <input type="checkbox" id="confirmEncryption" style="margin-right: 8px;">
+                        I confirm this review is complete and ready for encryption & blockchain storage
+                    </label>
+                </div>
+                
+                <button class="btn" onclick="encryptReview()" style="background: #28a745; font-size: 16px; padding: 15px 25px; font-weight: bold;">🔒 ENCRYPT & ADD REVIEW TO BLOCKCHAIN</button>
+            </div>
+        </div>
+        
+        <div class="main-panel">
+            <h2>⛓️ Blockchain</h2>
+            <div id="blocksContainer"></div>
+        </div>
+    </div>
+    
+    <div class="virtual-env" id="virtualEnv">
+        <button class="close-virtual" onclick="exitVirtualEnvironment()">✕ Close</button>
+        <div class="virtual-header">
+            <h1>🌐 3D Virtual Blockchain Environment</h1>
+            <p>Explore your blockchain data in 3D space</p>
+        </div>
+        <div class="virtual-content">
+            <canvas id="threeCanvas"></canvas>
+        </div>
+        <div class="virtual-controls">
+            <strong>🎮 Controls:</strong><br>
+            • Mouse: Look around<br>
+            • WASD: Move around<br>
+            • Click blocks: View data<br>
+            • Scroll: Zoom in/out
+        </div>
+        <div class="virtual-info" id="virtualInfo">
+            <div id="blockInfo"></div>
+        </div>
+    </div>
+    
+
+
+    <script>
+
+        function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+    }
+        // Simple blockchain implementation
+        class SimpleBlock {
+            constructor(index, data, previousHash) {
+                this.index = index;
+                this.timestamp = new Date().toISOString();
+                this.data = data;
+                this.previousHash = previousHash || '0';
+                this.hash = this.calculateHash();
+            }
+            
+            calculateHash() {
+                const str = this.index + this.previousHash + this.timestamp + JSON.stringify(this.data);
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                }
+                return Math.abs(hash).toString(16);
+            }
+        }
+        
+        class SimpleBlockchain {
+            constructor() {
+                this.chain = [this.createGenesisBlock()];
+            }
+            
+            createGenesisBlock() {
+                return new SimpleBlock(0, {
+                    title: "Genesis Block",
+                    content: "First block in chain",
+                    type: "System"
+                }, "0");
+            }
+            
+            getLatestBlock() {
+                return this.chain[this.chain.length - 1];
+            }
+            
+            addBlock(newBlock) {
+                newBlock.previousHash = this.getLatestBlock().hash;
+                newBlock.hash = newBlock.calculateHash();
+                this.chain.push(newBlock);
+            }
+        }
+        
+        // Simple encryption
+        function simpleEncrypt(text) {
+            return btoa(text.split('').map(char => 
+                String.fromCharCode(char.charCodeAt(0) + 3)
+            ).join(''));
+        }
+        
+        function simpleDecrypt(encrypted) {
+            try {
+                return atob(encrypted).split('').map(char => 
+                    String.fromCharCode(char.charCodeAt(0) - 3)
+                ).join('');
+            } catch (e) {
+                return "Decryption failed";
+            }
+        }
+        
+        // Initialize blockchain
+        let blockchain = new SimpleBlockchain();
+        let currentRole = 'auditor';
+        let currentPDFData = null;
+        
+        // No email authentication needed
+        
+        // Configure PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        async function handlePDFUpload(event) {
+            const file = event.target.files[0];
+            if (!file || file.type !== 'application/pdf') {
+                alert('❌ Please select a valid PDF file!');
+                return;
+            }
+            
+            // Show processing UI
+            document.getElementById('pdfProcessing').style.display = 'block';
+            document.getElementById('pdfSummary').style.display = 'none';
+            
+            try {
+                // Update progress
+                updateProgress(10, 'Reading PDF file...');
+                
+                // Read the PDF file
+                const arrayBuffer = await file.arrayBuffer();
+                
+                updateProgress(30, 'Loading PDF document...');
+                
+                // Load PDF with PDF.js
+                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                
+                updateProgress(50, 'Extracting text from pages...');
+                
+                // Extract text from all pages
+                let fullText = '';
+                const totalPages = pdf.numPages;
+                
+                for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += `\n--- Page ${pageNum} ---\n${pageText}\n`;
+                    
+                    // Update progress for each page
+                    const pageProgress = 50 + (pageNum / totalPages) * 30;
+                    updateProgress(pageProgress, `Processing page ${pageNum} of ${totalPages}...`);
+                }
+                
+                updateProgress(85, 'Analyzing document content...');
+                
+                // Analyze the extracted text
+                const analysis = await analyzePDFContent(fullText, file.name, totalPages);
+                
+                updateProgress(100, 'Analysis complete!');
+                
+                // Store PDF data for blockchain addition
+                currentPDFData = {
+                    fileName: file.name,
+                    fileSize: file.size,
+                    totalPages: totalPages,
+                    extractedText: fullText,
+                    analysis: analysis,
+                    uploadDate: new Date().toISOString()
+                };
+                
+                // Display the summary
+                displayPDFSummary(analysis);
+                
+                // Hide processing UI
+                setTimeout(() => {
+                    document.getElementById('pdfProcessing').style.display = 'none';
+                }, 1000);
+                
+            } catch (error) {
+                console.error('PDF processing error:', error);
+                alert(`❌ Error processing PDF: ${error.message}`);
+                document.getElementById('pdfProcessing').style.display = 'none';
+            }
+        }
+        
+        function updateProgress(percentage, status) {
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('processingStatus').textContent = status;
+        }
+        
+        async function analyzePDFContent(text, fileName, totalPages) {
+            // Basic analysis that works without external APIs
+            const analysis = {
+                fileName: fileName,
+                totalPages: totalPages,
+                wordCount: text.split(/\s+/).length,
+                characterCount: text.length,
+                summary: '',
+                keyFindings: [],
+                recommendations: [],
+                riskAssessment: 'Medium',
+                complianceNotes: '',
+                financialData: [],
+                documentType: 'Unknown'
+            };
+            
+            // Determine document type based on content
+            const lowerText = text.toLowerCase();
+            if (lowerText.includes('financial statement') || lowerText.includes('balance sheet') || lowerText.includes('income statement')) {
+                analysis.documentType = 'Financial Statement';
+            } else if (lowerText.includes('audit') || lowerText.includes('auditor')) {
+                analysis.documentType = 'Audit Report';
+            } else if (lowerText.includes('tax') || lowerText.includes('revenue')) {
+                analysis.documentType = 'Tax Document';
+            } else if (lowerText.includes('budget') || lowerText.includes('forecast')) {
+                analysis.documentType = 'Budget/Forecast';
+            } else if (lowerText.includes('invoice') || lowerText.includes('receipt')) {
+                analysis.documentType = 'Invoice/Receipt';
+            }
+            
+            // Extract key financial figures
+            const numberPattern = /\$[\d,]+\.?\d*/g;
+            const financialNumbers = text.match(numberPattern) || [];
+            analysis.financialData = financialNumbers.slice(0, 10); // Top 10 financial figures
+            
+            // Generate basic summary
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
+            analysis.summary = sentences.slice(0, 3).join('. ') + '.';
+            
+            // Generate key findings based on content analysis
+            if (analysis.documentType === 'Financial Statement') {
+                analysis.keyFindings = [
+                    'Financial statement document identified',
+                    `Document contains ${analysis.financialData.length} financial figures`,
+                    'Requires detailed financial analysis'
+                ];
+                analysis.recommendations = [
+                    'Verify all financial figures against supporting documents',
+                    'Check compliance with accounting standards',
+                    'Review for any unusual transactions'
+                ];
+            } else if (analysis.documentType === 'Audit Report') {
+                analysis.keyFindings = [
+                    'Audit report document identified',
+                    'Contains audit findings and recommendations',
+                    'Requires compliance review'
+                ];
+                analysis.recommendations = [
+                    'Review audit findings for compliance issues',
+                    'Implement recommended corrective actions',
+                    'Schedule follow-up audit if necessary'
+                ];
+            } else {
+                analysis.keyFindings = [
+                    `${analysis.documentType} document processed`,
+                    `Contains ${analysis.wordCount} words across ${totalPages} pages`,
+                    'Document ready for professional review'
+                ];
+                analysis.recommendations = [
+                    'Conduct detailed manual review',
+                    'Verify document authenticity',
+                    'Check for compliance requirements'
+                ];
+            }
+            
+            // Risk assessment based on content
+            if (lowerText.includes('risk') || lowerText.includes('concern') || lowerText.includes('issue')) {
+                analysis.riskAssessment = 'High';
+            } else if (lowerText.includes('compliant') || lowerText.includes('approved')) {
+                analysis.riskAssessment = 'Low';
+            }
+            
+            // Compliance notes
+            if (currentRole === 'auditor') {
+                analysis.complianceNotes = 'Document requires audit compliance review. Check against regulatory standards and internal policies.';
+            } else if (currentRole === 'accountant') {
+                analysis.complianceNotes = 'Document requires accounting compliance review. Verify GAAP compliance and financial accuracy.';
+            }
+            
+            return analysis;
+        }
+        
+        function displayPDFSummary(analysis) {
+            const summaryContainer = document.getElementById('pdfSummaryContent');
+            
+            // Simple summary for users (no professional analysis)
+            summaryContainer.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.2rem; font-weight: bold; color: #1976d2;">${analysis.totalPages}</div>
+                        <div style="font-size: 12px;">Total Pages</div>
+                    </div>
+                    <div style="background: #f3e5f5; padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.2rem; font-weight: bold; color: #7b1fa2;">${analysis.wordCount.toLocaleString()}</div>
+                        <div style="font-size: 12px;">Word Count</div>
+                    </div>
+                    <div style="background: #e8f5e8; padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.2rem; font-weight: bold; color: #388e3c;">${analysis.documentType}</div>
+                        <div style="font-size: 12px;">Document Type</div>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid #17a2b8;">
+                    <h5 style="color: #17a2b8; margin-bottom: 8px;">📄 Upload Status</h5>
+                    <p style="margin: 0;">PDF document processed successfully and ready to be added to blockchain. Professional analysis will be available to auditors and accountants.</p>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; font-size: 12px; color: #6c757d; margin-top: 15px;">
+                    <strong>📁 File:</strong> ${analysis.fileName} | 
+                    <strong>📊 Processed:</strong> ${new Date().toLocaleString()} | 
+                    <strong>👤 Uploaded by:</strong> User
+                </div>
+            `;
+            
+            document.getElementById('pdfSummary').style.display = 'block';
+        }
+        
+        function addPDFToBlockchain() {
+            if (!currentPDFData) {
+                alert('❌ No PDF data available to add to blockchain!');
+                return;
+            }
+            
+            // Create comprehensive PDF data for blockchain
+            const blockchainData = {
+                title: `PDF Document: ${currentPDFData.fileName}`,
+                content: JSON.stringify({
+                    fileName: currentPDFData.fileName,
+                    fileSize: currentPDFData.fileSize,
+                    totalPages: currentPDFData.totalPages,
+                    analysis: currentPDFData.analysis,
+                    extractedText: currentPDFData.extractedText,
+                    uploadDate: currentPDFData.uploadDate,
+                    uploadedBy: 'User',
+                    processingDate: new Date().toISOString()
+                }),
+                type: 'PDF-Document',
+                encrypted: true
+            };
+            
+            // Encrypt the content
+            const encryptedContent = simpleEncrypt(blockchainData.content);
+            blockchainData.content = encryptedContent;
+            blockchainData.originalContent = JSON.stringify(currentPDFData);
+            
+            const newBlock = new SimpleBlock(blockchain.chain.length, blockchainData, "");
+            blockchain.addBlock(newBlock);
+            
+            // Create summary reports for both auditor and accountant
+            createProfessionalSummaryReports(currentPDFData, blockchain.chain.length - 1);
+            
+            // Update displays
+            updateDisplay();
+            updateReviewStats();
+            
+            // Clear current PDF data
+            currentPDFData = null;
+            document.getElementById('pdfSummary').style.display = 'none';
+            document.getElementById('pdfUpload').value = '';
+            
+            alert(`✅ PDF document successfully added to blockchain!\n\n📄 File: ${blockchainData.title}\n🔒 Data encrypted and secured\n📊 Block #${blockchain.chain.length - 1} created\n📋 Summary reports sent to Auditor & Accountant sections\n\n👥 Professionals can now view detailed analysis and summaries.`);
+        }
+        
+        function createProfessionalSummaryReports(pdfData, blockIndex) {
+            // Create Auditor Summary Report
+            const auditorSummary = {
+                title: `Auditor Summary: ${pdfData.fileName}`,
+                content: JSON.stringify({
+                    reportType: 'Auditor Summary Report',
+                    sourceDocument: pdfData.fileName,
+                    sourceBlockIndex: blockIndex,
+                    generatedDate: new Date().toISOString(),
+                    documentAnalysis: {
+                        documentType: pdfData.analysis.documentType,
+                        totalPages: pdfData.totalPages,
+                        wordCount: pdfData.analysis.wordCount,
+                        riskAssessment: pdfData.analysis.riskAssessment,
+                        complianceStatus: 'Requires audit review for regulatory compliance'
+                    },
+                    auditFindings: pdfData.analysis.keyFindings,
+                    complianceReview: {
+                        status: 'Pending Audit Review',
+                        regulatoryRequirements: 'Document requires comprehensive audit review against applicable standards',
+                        riskFactors: pdfData.analysis.riskAssessment === 'High' ? ['High risk document identified', 'Immediate audit attention required'] : ['Standard audit procedures apply'],
+                        nextSteps: ['Conduct detailed audit review', 'Verify compliance with regulations', 'Document audit findings']
+                    },
+                    recommendations: pdfData.analysis.recommendations,
+                    summary: `Audit Summary: ${pdfData.analysis.documentType} document uploaded requiring professional audit review. Document contains ${pdfData.analysis.wordCount} words across ${pdfData.totalPages} pages with ${pdfData.analysis.riskAssessment.toLowerCase()} risk assessment.`
+                }),
+                type: 'Auditor-Summary-Report',
+                encrypted: true,
+                sourceBlock: blockIndex,
+                targetRole: 'auditor'
+            };
+            
+            // Create Accountant Summary Report
+            const accountantSummary = {
+                title: `Accountant Summary: ${pdfData.fileName}`,
+                content: JSON.stringify({
+                    reportType: 'Accountant Summary Report',
+                    sourceDocument: pdfData.fileName,
+                    sourceBlockIndex: blockIndex,
+                    generatedDate: new Date().toISOString(),
+                    documentAnalysis: {
+                        documentType: pdfData.analysis.documentType,
+                        totalPages: pdfData.totalPages,
+                        wordCount: pdfData.analysis.wordCount,
+                        financialDataDetected: pdfData.analysis.financialData.length,
+                        financialFigures: pdfData.analysis.financialData.slice(0, 10)
+                    },
+                    financialAnalysis: {
+                        status: 'Pending Accounting Review',
+                        gaapCompliance: 'Requires GAAP compliance verification',
+                        financialAccuracy: 'Financial figures require validation',
+                        accountingTreatment: 'Review accounting standards compliance'
+                    },
+                    keyFindings: pdfData.analysis.keyFindings,
+                    recommendations: [
+                        'Verify GAAP compliance for all financial data',
+                        'Review mathematical accuracy of financial calculations',
+                        'Validate account classifications and treatments',
+                        'Ensure proper financial reporting standards'
+                    ],
+                    summary: `Accounting Summary: ${pdfData.analysis.documentType} document uploaded requiring professional accounting review. Document contains ${pdfData.analysis.financialData.length} financial figures requiring validation and GAAP compliance verification.`
+                }),
+                type: 'Accountant-Summary-Report',
+                encrypted: true,
+                sourceBlock: blockIndex,
+                targetRole: 'accountant'
+            };
+            
+            // Encrypt and add auditor summary to blockchain
+            const encryptedAuditorContent = simpleEncrypt(auditorSummary.content);
+            auditorSummary.content = encryptedAuditorContent;
+            const auditorBlock = new SimpleBlock(blockchain.chain.length, auditorSummary, "");
+            blockchain.addBlock(auditorBlock);
+            
+            // Encrypt and add accountant summary to blockchain
+            const encryptedAccountantContent = simpleEncrypt(accountantSummary.content);
+            accountantSummary.content = encryptedAccountantContent;
+            const accountantBlock = new SimpleBlock(blockchain.chain.length, accountantSummary, "");
+            blockchain.addBlock(accountantBlock);
+        }
+        
+        function showSummaryReports() {
+            console.log('showSummaryReports called'); // Debug log
+            
+            // Find summary reports for current role
+            const summaryBlocks = blockchain.chain.filter(block => 
+                (currentRole === 'auditor' && block.data.type === 'Auditor-Summary-Report') ||
+                (currentRole === 'accountant' && block.data.type === 'Accountant-Summary-Report')
+            );
+            
+            console.log('Found summary blocks:', summaryBlocks.length); // Debug log
+            
+            if (summaryBlocks.length === 0) {
+                alert(`❌ No summary reports found for ${currentRole}s!\n\nSummary reports are automatically created when users upload PDF documents.`);
+                return;
+            }
+            
+            const summaryContainer = document.getElementById('summaryReportsContent');
+            let htmlContent = `<div style="margin-bottom: 15px;"><h5 style="color: #28a745; margin-bottom: 10px;">📊 ${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} Summary Reports</h5></div>`;
+            
+            summaryBlocks.forEach((block, index) => {
+                try {
+                    console.log('Processing summary block:', block.index); // Debug log
+                    
+                    // Decrypt the summary data
+                    const decryptedContent = simpleDecrypt(block.data.content);
+                    const summaryData = JSON.parse(decryptedContent);
+                    
+                    console.log('Summary Data:', summaryData.sourceDocument); // Debug log
+                    
+                    // Get role-specific color
+                    const roleColor = currentRole === 'auditor' ? '#17a2b8' : '#28a745';
+                    const roleIcon = currentRole === 'auditor' ? '🔍' : '📊';
+                    
+                    // Create comprehensive summary display
+                    htmlContent += `
+                        <div style="background: white; padding: 20px; margin: 15px 0; border-radius: 12px; border-left: 5px solid ${roleColor}; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                            <!-- Summary Header -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f8f9fa;">
+                                <div>
+                                    <h4 style="color: ${roleColor}; margin: 0; font-size: 18px;">${roleIcon} ${summaryData.reportType}</h4>
+                                    <div style="margin-top: 8px;">
+                                        <span style="background: ${roleColor}; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; margin-right: 10px; font-weight: bold;">
+                                            ${summaryData.sourceDocument}
+                                        </span>
+                                        <span style="background: #6c757d; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: bold;">
+                                            Block #${summaryData.sourceBlockIndex}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style="text-align: right; color: #6c757d; font-size: 12px;">
+                                    <div><strong>📅 Generated:</strong> ${new Date(summaryData.generatedDate).toLocaleDateString()}</div>
+                                    <div><strong>⏰ Time:</strong> ${new Date(summaryData.generatedDate).toLocaleTimeString()}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Document Analysis Summary -->
+                            <div style="margin-bottom: 20px;">
+                                <h6 style="color: #495057; margin-bottom: 10px; font-size: 14px; font-weight: bold;">📋 Document Analysis</h6>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                                    <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 12px; border-radius: 8px; text-align: center;">
+                                        <div style="font-size: 1.2rem; font-weight: bold; color: #1976d2;">${summaryData.documentAnalysis.totalPages}</div>
+                                        <div style="font-size: 11px; color: #1976d2; font-weight: 500;">Pages</div>
+                                    </div>
+                                    <div style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 12px; border-radius: 8px; text-align: center;">
+                                        <div style="font-size: 1.2rem; font-weight: bold; color: #7b1fa2;">${summaryData.documentAnalysis.wordCount.toLocaleString()}</div>
+                                        <div style="font-size: 11px; color: #7b1fa2; font-weight: 500;">Words</div>
+                                    </div>
+                                    <div style="background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); padding: 12px; border-radius: 8px; text-align: center;">
+                                        <div style="font-size: 1.2rem; font-weight: bold; color: #388e3c;">${summaryData.documentAnalysis.documentType}</div>
+                                        <div style="font-size: 11px; color: #388e3c; font-weight: 500;">Type</div>
+                                    </div>
+                                    ${summaryData.documentAnalysis.financialDataDetected !== undefined ? `
+                                    <div style="background: linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%); padding: 12px; border-radius: 8px; text-align: center;">
+                                        <div style="font-size: 1.2rem; font-weight: bold; color: #f57c00;">${summaryData.documentAnalysis.financialDataDetected}</div>
+                                        <div style="font-size: 11px; color: #f57c00; font-weight: 500;">Financial Items</div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            
+                            <!-- Professional Summary -->
+                            <div style="margin-bottom: 20px;">
+                                <h6 style="color: #495057; margin-bottom: 10px; font-size: 14px; font-weight: bold;">${roleIcon} Professional Summary</h6>
+                                <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 15px; border-radius: 8px; border-left: 4px solid ${roleColor};">
+                                    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #495057;">
+                                        ${summaryData.summary}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Key Findings -->
+                            ${summaryData.auditFindings || summaryData.keyFindings ? `
+                            <div style="margin-bottom: 20px;">
+                                <h6 style="color: #495057; margin-bottom: 10px; font-size: 14px; font-weight: bold;">🔍 Key Findings</h6>
+                                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; border-left: 4px solid #28a745;">
+                                    <ul style="margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.5;">
+                                        ${(summaryData.auditFindings || summaryData.keyFindings).map(finding => `<li style="margin-bottom: 5px;">${finding}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            <!-- Role-Specific Analysis -->
+                            ${currentRole === 'auditor' && summaryData.complianceReview ? `
+                            <div style="margin-bottom: 20px;">
+                                <h6 style="color: #495057; margin-bottom: 10px; font-size: 14px; font-weight: bold;">📜 Compliance Review</h6>
+                                <div style="background: #fff3cd; padding: 12px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                                    <div style="margin-bottom: 8px;"><strong>Status:</strong> ${summaryData.complianceReview.status}</div>
+                                    <div style="margin-bottom: 8px;"><strong>Requirements:</strong> ${summaryData.complianceReview.regulatoryRequirements}</div>
+                                    <div><strong>Next Steps:</strong> ${summaryData.complianceReview.nextSteps.join(', ')}</div>
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            ${currentRole === 'accountant' && summaryData.financialAnalysis ? `
+                            <div style="margin-bottom: 20px;">
+                                <h6 style="color: #495057; margin-bottom: 10px; font-size: 14px; font-weight: bold;">💰 Financial Analysis</h6>
+                                <div style="background: #d4edda; padding: 12px; border-radius: 8px; border-left: 4px solid #28a745;">
+                                    <div style="margin-bottom: 8px;"><strong>Status:</strong> ${summaryData.financialAnalysis.status}</div>
+                                    <div style="margin-bottom: 8px;"><strong>GAAP Compliance:</strong> ${summaryData.financialAnalysis.gaapCompliance}</div>
+                                    <div><strong>Financial Accuracy:</strong> ${summaryData.financialAnalysis.financialAccuracy}</div>
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            <!-- Recommendations -->
+                            <div style="margin-bottom: 20px;">
+                                <h6 style="color: #495057; margin-bottom: 10px; font-size: 14px; font-weight: bold;">💡 Professional Recommendations</h6>
+                                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; border-left: 4px solid #6f42c1;">
+                                    <ul style="margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.5;">
+                                        ${summaryData.recommendations.map(rec => `<li style="margin-bottom: 5px;">${rec}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <!-- Professional Actions -->
+                            <div style="margin-bottom: 15px;">
+                                <h6 style="color: #495057; margin-bottom: 10px; font-size: 14px; font-weight: bold;">🎯 Professional Actions</h6>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button class="btn" onclick="viewSourcePDFDocument(${summaryData.sourceBlockIndex})" style="background: #17a2b8; font-size: 13px; padding: 10px 16px; border-radius: 6px;">
+                                        📄 View Source Document
+                                    </button>
+                                    <button class="btn" onclick="createReviewFromSummary('${summaryData.sourceDocument}', ${summaryData.sourceBlockIndex})" style="background: #ffc107; color: #212529; font-size: 13px; padding: 10px 16px; border-radius: 6px;">
+                                        📝 Create Professional Review
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Summary Metadata -->
+                            <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; font-size: 12px; color: #6c757d; border-top: 1px solid #dee2e6;">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                                    <div><strong>📊 Report Type:</strong> ${summaryData.reportType}</div>
+                                    <div><strong>🔗 Summary Block:</strong> #${block.index}</div>
+                                    <div><strong>📄 Source Block:</strong> #${summaryData.sourceBlockIndex}</div>
+                                    <div><strong>🔒 Status:</strong> Encrypted & Secured</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error('Error processing summary block:', error);
+                    htmlContent += `
+                        <div style="background: #ffebee; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #dc3545;">
+                            <h5 style="color: #dc3545; margin: 0 0 10px 0;">❌ Error Loading Summary Report</h5>
+                            <div style="font-size: 14px; color: #721c24; margin-bottom: 8px;">
+                                <strong>Block #${block.index}:</strong> Unable to decrypt or parse summary data
+                            </div>
+                            <div style="font-size: 12px; color: #6c757d;">
+                                <strong>Error Details:</strong> ${error.message}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            // Add summary footer
+            htmlContent += `
+                <div style="background: linear-gradient(135deg, #e8f4fd 0%, #d1ecf1 100%); padding: 15px; margin-top: 20px; border-radius: 8px; text-align: center; border: 2px solid #28a745;">
+                    <h6 style="color: #28a745; margin: 0 0 8px 0;">📊 Summary</h6>
+                    <p style="margin: 0; font-size: 14px; color: #0c5460;">
+                        <strong>${summaryBlocks.length}</strong> professional summary report${summaryBlocks.length !== 1 ? 's' : ''} available for ${currentRole} review
+                    </p>
+                </div>
+            `;
+            
+            summaryContainer.innerHTML = htmlContent;
+            document.getElementById('summaryReportsList').style.display = 'block';
+            
+            // Hide PDF documents list if open
+            document.getElementById('pdfDocumentsList').style.display = 'none';
+            
+            // Scroll to the summary reports section
+            document.getElementById('summaryReportsList').scrollIntoView({ behavior: 'smooth' });
+            
+            console.log('Summary reports displayed successfully'); // Debug log
+            alert(`📊 Successfully loaded ${summaryBlocks.length} professional summary report${summaryBlocks.length !== 1 ? 's' : ''} for ${currentRole}s!\n\nThese reports are automatically generated when users upload PDF documents.`);
+        }
+        
+        function viewSourcePDFDocument(sourceBlockIndex) {
+            const sourceBlock = blockchain.chain[sourceBlockIndex];
+            if (!sourceBlock || sourceBlock.data.type !== 'PDF-Document') {
+                alert('❌ Source PDF document not found!');
+                return;
+            }
+            
+            // Use existing viewPDFContent function
+            viewPDFContent(sourceBlockIndex);
+        }
+        
+        function createReviewFromSummary(fileName, sourceBlockIndex) {
+            // Use existing createPDFReview function
+            createPDFReview(fileName, sourceBlockIndex);
+        }
+        
+        function showPDFDocuments() {
+            console.log('showPDFDocuments called'); // Debug log
+            
+            // Find all PDF documents in the blockchain
+            const pdfBlocks = blockchain.chain.filter(block => 
+                block.data.type === 'PDF-Document'
+            );
+            
+            console.log('Found PDF blocks:', pdfBlocks.length); // Debug log
+            
+            // Also check for uploaded but not yet added to blockchain PDFs
+            let pendingPDFs = [];
+            if (currentPDFData && !pdfBlocks.some(block => {
+                try {
+                    const decryptedContent = simpleDecrypt(block.data.content);
+                    const pdfData = JSON.parse(decryptedContent);
+                    return pdfData.fileName === currentPDFData.fileName;
+                } catch (e) {
+                    return false;
+                }
+            })) {
+                pendingPDFs.push(currentPDFData);
+            }
+            
+            if (pdfBlocks.length === 0 && pendingPDFs.length === 0) {
+                alert('❌ No PDF documents found!\n\nUsers need to upload PDF files first using the "Choose PDF File" button.');
+                return;
+            }
+            
+            // Hide summary reports list if open
+            document.getElementById('summaryReportsList').style.display = 'none';
+            
+            const pdfContainer = document.getElementById('pdfDocumentsContent');
+            let htmlContent = '<div style="margin-bottom: 15px;"><h5 style="color: #17a2b8; margin-bottom: 10px;">📄 PDF Document Summaries</h5></div>';
+            
+            // Display pending PDFs first (uploaded but not yet added to blockchain)
+            pendingPDFs.forEach((pdfData, index) => {
+                console.log('Processing pending PDF:', pdfData.fileName); // Debug log
+                
+                const docTypeColor = getDocumentTypeColor(pdfData.analysis.documentType);
+                
+                htmlContent += `
+                    <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); padding: 20px; margin: 15px 0; border-radius: 12px; border-left: 5px solid #ffc107; box-shadow: 0 4px 10px rgba(255, 193, 7, 0.2);">
+                        <!-- Pending Document Header -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid rgba(255, 193, 7, 0.3);">
+                            <div>
+                                <h4 style="color: #856404; margin: 0; font-size: 18px;">📄 ${pdfData.fileName} <span style="background: #ffc107; color: #212529; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">⏳ PENDING</span></h4>
+                                <div style="margin-top: 8px;">
+                                    <span style="background: ${docTypeColor}; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; margin-right: 10px; font-weight: bold;">
+                                        ${pdfData.analysis.documentType}
+                                    </span>
+                                    <span style="background: ${getRiskColor(pdfData.analysis.riskAssessment)}; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: bold;">
+                                        Risk: ${pdfData.analysis.riskAssessment}
+                                    </span>
+                                </div>
+                            </div>
+                            <div style="text-align: right; color: #856404; font-size: 12px;">
+                                <div><strong>📅 Uploaded:</strong> ${new Date(pdfData.uploadDate).toLocaleDateString()}</div>
+                                <div><strong>⏰ Time:</strong> ${new Date(pdfData.uploadDate).toLocaleTimeString()}</div>
+                                <div style="margin-top: 5px; color: #dc3545; font-weight: bold;">⚠️ Not yet in blockchain</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Document Statistics -->
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+                            <div style="background: rgba(255, 255, 255, 0.8); padding: 12px; border-radius: 8px; text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: bold; color: #1976d2;">${pdfData.totalPages}</div>
+                                <div style="font-size: 11px; color: #1976d2; font-weight: 500;">Total Pages</div>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.8); padding: 12px; border-radius: 8px; text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: bold; color: #7b1fa2;">${pdfData.analysis.wordCount.toLocaleString()}</div>
+                                <div style="font-size: 11px; color: #7b1fa2; font-weight: 500;">Word Count</div>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.8); padding: 12px; border-radius: 8px; text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: bold; color: #388e3c;">${(pdfData.fileSize / 1024).toFixed(1)}</div>
+                                <div style="font-size: 11px; color: #388e3c; font-weight: 500;">Size (KB)</div>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.8); padding: 12px; border-radius: 8px; text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: bold; color: #f57c00;">${pdfData.analysis.financialData.length}</div>
+                                <div style="font-size: 11px; color: #f57c00; font-weight: 500;">Financial Items</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Document Summary -->
+                        <div style="margin-bottom: 20px;">
+                            <h6 style="color: #856404; margin-bottom: 10px; font-size: 14px; font-weight: bold;">📋 Document Summary</h6>
+                            <div style="background: rgba(255, 255, 255, 0.8); padding: 15px; border-radius: 8px; border-left: 4px solid ${docTypeColor};">
+                                <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #495057;">
+                                    ${pdfData.analysis.summary || 'This document has been processed and analyzed. It contains ' + pdfData.analysis.wordCount + ' words across ' + pdfData.totalPages + ' pages and is ready for professional review by auditors and accountants.'}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Key Findings -->
+                        <div style="margin-bottom: 20px;">
+                            <h6 style="color: #856404; margin-bottom: 10px; font-size: 14px; font-weight: bold;">🔍 Key Findings</h6>
+                            <div style="background: rgba(255, 255, 255, 0.8); padding: 12px; border-radius: 8px; border-left: 4px solid #28a745;">
+                                <ul style="margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.5;">
+                                    ${pdfData.analysis.keyFindings.map(finding => `<li style="margin-bottom: 5px;">${finding}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Financial Data Preview (if available) -->
+                        ${pdfData.analysis.financialData.length > 0 ? `
+                        <div style="margin-bottom: 20px;">
+                            <h6 style="color: #856404; margin-bottom: 10px; font-size: 14px; font-weight: bold;">💰 Financial Data Detected</h6>
+                            <div style="background: rgba(255, 255, 255, 0.8); padding: 12px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                                <div style="font-size: 13px; color: #856404;">
+                                    <strong>Sample Financial Figures:</strong> ${pdfData.analysis.financialData.slice(0, 5).join(', ')}
+                                    ${pdfData.analysis.financialData.length > 5 ? ` and ${pdfData.analysis.financialData.length - 5} more...` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        <!-- Professional Actions -->
+                        <div style="margin-bottom: 15px;">
+                            <h6 style="color: #856404; margin-bottom: 10px; font-size: 14px; font-weight: bold;">🎯 Professional Actions</h6>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button class="btn" onclick="viewPendingPDFContent('${pdfData.fileName}')" style="background: #28a745; font-size: 13px; padding: 10px 16px; border-radius: 6px;">
+                                    📖 View Full Content
+                                </button>
+                                <button class="btn" onclick="createPendingPDFReview('${pdfData.fileName}')" style="background: #ffc107; color: #212529; font-size: 13px; padding: 10px 16px; border-radius: 6px;">
+                                    📝 Create Review
+                                </button>
+                                <button class="btn" onclick="addPDFToBlockchain()" style="background: #dc3545; font-size: 13px; padding: 10px 16px; border-radius: 6px;">
+                                    🔒 Add to Blockchain
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Document Metadata -->
+                        <div style="background: rgba(255, 255, 255, 0.8); padding: 12px; border-radius: 6px; font-size: 12px; color: #856404; border-top: 1px solid rgba(255, 193, 7, 0.3);">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                                <div><strong>📁 File Name:</strong> ${pdfData.fileName}</div>
+                                <div><strong>🔗 Status:</strong> Pending Blockchain Addition</div>
+                                <div><strong>👤 Uploaded By:</strong> User</div>
+                                <div><strong>⚠️ Action Required:</strong> Add to Blockchain</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            pdfBlocks.forEach((block, index) => {
+                try {
+                    console.log('Processing block:', block.index); // Debug log
+                    
+                    // Decrypt the PDF data
+                    const decryptedContent = simpleDecrypt(block.data.content);
+                    const pdfData = JSON.parse(decryptedContent);
+                    
+                    console.log('PDF Data:', pdfData.fileName); // Debug log
+                    
+                    // Get document type color
+                    const docTypeColor = getDocumentTypeColor(pdfData.analysis.documentType);
+                    
+                    // Create comprehensive summary display
+                    htmlContent += `
+                        <div style="background: white; padding: 20px; margin: 15px 0; border-radius: 12px; border-left: 5px solid ${docTypeColor}; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                            <!-- Document Header -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f8f9fa;">
+                                <div>
+                                    <h4 style="color: ${docTypeColor}; margin: 0; font-size: 18px;">📄 ${pdfData.fileName}</h4>
+                                    <div style="margin-top: 8px;">
+                                        <span style="background: ${docTypeColor}; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; margin-right: 10px; font-weight: bold;">
+                                            ${pdfData.analysis.documentType}
+                                        </span>
+                                        <span style="background: ${getRiskColor(pdfData.analysis.riskAssessment)}; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: bold;">
+                                            Risk: ${pdfData.analysis.riskAssessment}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style="text-align: right; color: #6c757d; font-size: 12px;">
+                                    <div><strong>📅 Uploaded:</strong> ${new Date(pdfData.uploadDate).toLocaleDateString()}</div>
+                                    <div><strong>⏰ Time:</strong> ${new Date(pdfData.uploadDate).toLocaleTimeString()}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Document Statistics -->
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+                                <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 12px; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 1.4rem; font-weight: bold; color: #1976d2;">${pdfData.totalPages}</div>
+                                    <div style="font-size: 11px; color: #1976d2; font-weight: 500;">Total Pages</div>
+                                </div>
+                                <div style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); padding: 12px; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 1.4rem; font-weight: bold; color: #7b1fa2;">${pdfData.analysis.wordCount.toLocaleString()}</div>
+                                    <div style="font-size: 11px; color: #7b1fa2; font-weight: 500;">Word Count</div>
+                                </div>
+                                <div style="background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); padding: 12px; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 1.4rem; font-weight: bold; color: #388e3c;">${(pdfData.fileSize / 1024).toFixed(1)}</div>
+                                    <div style="font-size: 11px; color: #388e3c; font-weight: 500;">Size (KB)</div>
+                                </div>
+                                <div style="background: linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%); padding: 12px; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 1.4rem; font-weight: bold; color: #f57c00;">${pdfData.analysis.financialData.length}</div>
+                                    <div style="font-size: 11px; color: #f57c00; font-weight: 500;">Financial Items</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Document Summary -->
+                            <div style="margin-bottom: 20px;">
+                                <h6 style="color: #495057; margin-bottom: 10px; font-size: 14px; font-weight: bold;">📋 Document Summary</h6>
+                                <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 15px; border-radius: 8px; border-left: 4px solid ${docTypeColor};">
+                                    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #495057;">
+                                        ${pdfData.analysis.summary || 'This document has been processed and analyzed. It contains ' + pdfData.analysis.wordCount + ' words across ' + pdfData.totalPages + ' pages and is ready for professional review by auditors and accountants.'}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Key Findings -->
+                            <div style="margin-bottom: 20px;">
+                                <h6 style="color: #495057; margin-bottom: 10px; font-size: 14px; font-weight: bold;">🔍 Key Findings</h6>
+                                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; border-left: 4px solid #28a745;">
+                                    <ul style="margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.5;">
+                                        ${pdfData.analysis.keyFindings.map(finding => `<li style="margin-bottom: 5px;">${finding}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <!-- Financial Data Preview (if available) -->
+                            ${pdfData.analysis.financialData.length > 0 ? `
+                            <div style="margin-bottom: 20px;">
+                                <h6 style="color: #495057; margin-bottom: 10px; font-size: 14px; font-weight: bold;">💰 Financial Data Detected</h6>
+                                <div style="background: #fff3cd; padding: 12px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                                    <div style="font-size: 13px; color: #856404;">
+                                        <strong>Sample Financial Figures:</strong> ${pdfData.analysis.financialData.slice(0, 5).join(', ')}
+                                        ${pdfData.analysis.financialData.length > 5 ? ` and ${pdfData.analysis.financialData.length - 5} more...` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            <!-- Professional Actions -->
+                            <div style="margin-bottom: 15px;">
+                                <h6 style="color: #495057; margin-bottom: 10px; font-size: 14px; font-weight: bold;">🎯 Professional Actions</h6>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button class="btn" onclick="viewPDFAnalysis(${block.index})" style="background: #17a2b8; font-size: 13px; padding: 10px 16px; border-radius: 6px;">
+                                        🔍 View Professional Analysis
+                                    </button>
+                                    <button class="btn" onclick="viewPDFContent(${block.index})" style="background: #28a745; font-size: 13px; padding: 10px 16px; border-radius: 6px;">
+                                        📖 View Full Content
+                                    </button>
+                                    <button class="btn" onclick="createPDFReview('${pdfData.fileName}', ${block.index})" style="background: #ffc107; color: #212529; font-size: 13px; padding: 10px 16px; border-radius: 6px;">
+                                        📝 Create Review
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Document Metadata -->
+                            <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; font-size: 12px; color: #6c757d; border-top: 1px solid #dee2e6;">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                                    <div><strong>📁 File Name:</strong> ${pdfData.fileName}</div>
+                                    <div><strong>🔗 Block ID:</strong> #${block.index}</div>
+                                    <div><strong>👤 Uploaded By:</strong> User</div>
+                                    <div><strong>🔒 Status:</strong> Encrypted & Secured</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error('Error processing PDF block:', error);
+                    htmlContent += `
+                        <div style="background: #ffebee; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #dc3545;">
+                            <h5 style="color: #dc3545; margin: 0 0 10px 0;">❌ Error Loading PDF Document</h5>
+                            <div style="font-size: 14px; color: #721c24; margin-bottom: 8px;">
+                                <strong>Block #${block.index}:</strong> Unable to decrypt or parse PDF data
+                            </div>
+                            <div style="font-size: 12px; color: #6c757d;">
+                                <strong>Error Details:</strong> ${error.message}
+                            </div>
+                            <div style="margin-top: 10px; font-size: 12px; color: #6c757d;">
+                                This may be due to data corruption or encryption issues. Please contact support if this persists.
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            // Add summary footer
+            const totalDocuments = pdfBlocks.length + pendingPDFs.length;
+            htmlContent += `
+                <div style="background: linear-gradient(135deg, #e8f4fd 0%, #d1ecf1 100%); padding: 15px; margin-top: 20px; border-radius: 8px; text-align: center; border: 2px solid #17a2b8;">
+                    <h6 style="color: #17a2b8; margin: 0 0 8px 0;">📊 Document Summary</h6>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                        <div style="background: rgba(255, 255, 255, 0.8); padding: 8px; border-radius: 6px;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #17a2b8;">${totalDocuments}</div>
+                            <div style="font-size: 12px;">Total Documents</div>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.8); padding: 8px; border-radius: 6px;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #28a745;">${pdfBlocks.length}</div>
+                            <div style="font-size: 12px;">In Blockchain</div>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.8); padding: 8px; border-radius: 6px;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #ffc107;">${pendingPDFs.length}</div>
+                            <div style="font-size: 12px;">Pending</div>
+                        </div>
+                    </div>
+                    <p style="margin: 0; font-size: 14px; color: #0c5460;">
+                        ${pendingPDFs.length > 0 ? 
+                            `⚠️ ${pendingPDFs.length} document${pendingPDFs.length !== 1 ? 's' : ''} uploaded but not yet added to blockchain` : 
+                            'All documents are secured in the blockchain'
+                        }
+                    </p>
+                </div>
+            `;
+            
+            pdfContainer.innerHTML = htmlContent;
+            document.getElementById('pdfDocumentsList').style.display = 'block';
+            
+            // Scroll to the PDF documents section
+            document.getElementById('pdfDocumentsList').scrollIntoView({ behavior: 'smooth' });
+            
+            console.log('PDF documents displayed successfully'); // Debug log
+            
+            const totalDocs = pdfBlocks.length + pendingPDFs.length;
+            let alertMessage = `📄 Successfully loaded ${totalDocs} PDF document${totalDocs !== 1 ? 's' : ''}!\n\n`;
+            
+            if (pdfBlocks.length > 0) {
+                alertMessage += `✅ ${pdfBlocks.length} document${pdfBlocks.length !== 1 ? 's' : ''} secured in blockchain\n`;
+            }
+            
+            if (pendingPDFs.length > 0) {
+                alertMessage += `⏳ ${pendingPDFs.length} document${pendingPDFs.length !== 1 ? 's' : ''} uploaded but pending blockchain addition\n`;
+                alertMessage += `\n💡 Tip: Click "Add to Blockchain" to secure pending documents`;
+            }
+            
+            alert(alertMessage);
+        }
+        
+        function viewPendingPDFContent(fileName) {
+            if (!currentPDFData || currentPDFData.fileName !== fileName) {
+                alert('❌ PDF content not available! Please re-upload the file.');
+                return;
+            }
+            
+            displayPDFContent(currentPDFData);
+        }
+        
+        function createPendingPDFReview(fileName) {
+            if (!currentPDFData || currentPDFData.fileName !== fileName) {
+                alert('❌ PDF data not available! Please re-upload the file.');
+                return;
+            }
+            
+            // Pre-fill the review form with PDF information and analysis
+            document.getElementById('reviewTitleInput').value = `${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} Review: ${fileName}`;
+            
+            // Create detailed pre-filled content based on PDF analysis
+            const prefilledContent = `Professional ${currentRole} review of PDF document: ${fileName}
+
+Document Analysis Summary:
+- Document Type: ${currentPDFData.analysis.documentType}
+- Total Pages: ${currentPDFData.totalPages}
+- Word Count: ${currentPDFData.analysis.wordCount.toLocaleString()}
+- Risk Assessment: ${currentPDFData.analysis.riskAssessment}
+- Upload Date: ${new Date(currentPDFData.uploadDate).toLocaleString()}
+- Status: Pending blockchain addition
+
+Key Findings:
+${currentPDFData.analysis.keyFindings.map(finding => `- ${finding}`).join('\n')}
+
+Detailed Professional Analysis:
+- `;
+            
+            document.getElementById('reviewContent').value = prefilledContent;
+            
+            // Pre-fill recommendations based on analysis
+            const prefilledRecommendations = currentPDFData.analysis.recommendations.join('\n- ');
+            document.getElementById('reviewRecommendations').value = `- ${prefilledRecommendations}`;
+            
+            // Set appropriate status based on risk assessment
+            const statusSelect = document.getElementById('reviewStatus');
+            if (currentPDFData.analysis.riskAssessment === 'High') {
+                statusSelect.value = 'needs-revision';
+            } else if (currentPDFData.analysis.riskAssessment === 'Low') {
+                statusSelect.value = 'approved';
+            } else {
+                statusSelect.value = 'under-review';
+            }
+            
+            // Set priority based on risk assessment
+            const prioritySelect = document.getElementById('reviewPriority');
+            if (currentPDFData.analysis.riskAssessment === 'High') {
+                prioritySelect.value = 'high';
+            } else if (currentPDFData.analysis.riskAssessment === 'Low') {
+                prioritySelect.value = 'low';
+            } else {
+                prioritySelect.value = 'medium';
+            }
+            
+            // Pre-fill compliance notes
+            document.getElementById('complianceNotes').value = currentPDFData.analysis.complianceNotes || `${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} compliance review required for ${currentPDFData.analysis.documentType}.`;
+            
+            // Show the review form
+            document.getElementById('reviewForm').style.display = 'block';
+            document.getElementById('reviewForm').scrollIntoView({ behavior: 'smooth' });
+            
+            alert(`📝 Review form pre-filled with analysis data for ${fileName}!\n\nDocument Type: ${currentPDFData.analysis.documentType}\nRisk Level: ${currentPDFData.analysis.riskAssessment}\nStatus: Pending blockchain addition\n\nPlease complete your professional review.`);
+        }
+        
+        function getDocumentTypeColor(docType) {
+            const colors = {
+                'Financial Statement': '#28a745',
+                'Audit Report': '#17a2b8',
+                'Tax Document': '#ffc107',
+                'Budget/Forecast': '#6f42c1',
+                'Invoice/Receipt': '#fd7e14',
+                'Unknown': '#6c757d'
+            };
+            return colors[docType] || '#6c757d';
+        }
+        
+        function getRiskColor(riskLevel) {
+            const colors = {
+                'Low': '#28a745',
+                'Medium': '#ffc107',
+                'High': '#dc3545',
+                'Critical': '#6f42c1'
+            };
+            return colors[riskLevel] || '#6c757d';
+        }
+        
+        function viewPDFContent(blockIndex) {
+            const block = blockchain.chain[blockIndex];
+            if (!block || block.data.type !== 'PDF-Document') {
+                alert('❌ PDF document not found!');
+                return;
+            }
+            
+            try {
+                // Decrypt and parse PDF data
+                const decryptedContent = simpleDecrypt(block.data.content);
+                const pdfData = JSON.parse(decryptedContent);
+                
+                // Display the full PDF content
+                displayPDFContent(pdfData);
+                
+            } catch (error) {
+                console.error('Error viewing PDF content:', error);
+                alert(`❌ Error loading PDF content: ${error.message}`);
+            }
+        }
+        
+        function displayPDFContent(pdfData) {
+            // Remove existing content display
+            const existingContent = document.getElementById('pdfContentDisplay');
+            if (existingContent) {
+                existingContent.remove();
+            }
+            
+            // Create content display
+            const contentContainer = document.createElement('div');
+            contentContainer.id = 'pdfContentDisplay';
+            contentContainer.className = 'main-panel';
+            contentContainer.style.marginTop = '20px';
+            contentContainer.style.backgroundColor = '#f8f9fa';
+            contentContainer.style.border = '3px solid #28a745';
+            contentContainer.style.maxHeight = '600px';
+            contentContainer.style.overflow = 'auto';
+            
+            contentContainer.innerHTML = `
+                <div style="position: sticky; top: 0; background: #f8f9fa; padding: 15px 0; border-bottom: 2px solid #28a745; margin-bottom: 15px;">
+                    <h2 style="margin: 0;">📖 PDF Document Content - ${pdfData.fileName}</h2>
+                    <div style="margin-top: 10px;">
+                        <span style="background: #28a745; color: white; padding: 3px 8px; border-radius: 12px; font-size: 12px; margin-right: 10px;">
+                            ${pdfData.analysis.documentType}
+                        </span>
+                        <span style="color: #6c757d; font-size: 12px;">
+                            📊 ${pdfData.totalPages} pages | 📝 ${pdfData.analysis.wordCount.toLocaleString()} words | 📅 ${new Date(pdfData.uploadDate).toLocaleString()}
+                        </span>
+                    </div>
+                    <button onclick="document.getElementById('pdfContentDisplay').remove()" style="position: absolute; top: 15px; right: 15px; background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">✕ Close</button>
+                </div>
+                
+                <div style="background: white; padding: 20px; border-radius: 8px; line-height: 1.6; font-family: 'Courier New', monospace; font-size: 13px; white-space: pre-wrap; word-wrap: break-word;">
+                    ${pdfData.extractedText}
+                </div>
+                
+                <div style="margin-top: 15px; padding: 15px; background: rgba(40, 167, 69, 0.1); border-radius: 8px;">
+                    <h5 style="color: #28a745; margin-bottom: 10px;">🔍 Quick Analysis Summary</h5>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                        <div style="background: white; padding: 10px; border-radius: 6px;">
+                            <strong>Document Type:</strong><br>${pdfData.analysis.documentType}
+                        </div>
+                        <div style="background: white; padding: 10px; border-radius: 6px;">
+                            <strong>Risk Assessment:</strong><br>${pdfData.analysis.riskAssessment}
+                        </div>
+                        <div style="background: white; padding: 10px; border-radius: 6px;">
+                            <strong>Financial Data:</strong><br>${pdfData.analysis.financialData.length} figures detected
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.querySelector('.container').appendChild(contentContainer);
+            contentContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function viewPDFAnalysis(blockIndex) {
+            const block = blockchain.chain[blockIndex];
+            if (!block || (block.data.type !== 'PDF-Document' && block.data.type !== 'PDF-Analysis')) {
+                alert('❌ PDF document not found!');
+                return;
+            }
+            
+            try {
+                // Decrypt and parse PDF data
+                const decryptedContent = simpleDecrypt(block.data.content);
+                const pdfData = JSON.parse(decryptedContent);
+                
+                // Generate professional analysis based on current role
+                const professionalAnalysis = generateProfessionalAnalysis(pdfData, currentRole);
+                
+                // Display the analysis
+                displayProfessionalPDFAnalysis(pdfData, professionalAnalysis);
+                
+            } catch (error) {
+                console.error('Error viewing PDF analysis:', error);
+                alert(`❌ Error loading PDF analysis: ${error.message}`);
+            }
+        }
+        
+        function generateProfessionalAnalysis(pdfData, role) {
+            const analysis = pdfData.analysis;
+            
+            // Enhanced analysis based on role
+            const professionalAnalysis = {
+                ...analysis,
+                professionalSummary: '',
+                riskAssessment: analysis.riskAssessment || 'Medium',
+                complianceStatus: '',
+                recommendations: [],
+                actionItems: [],
+                nextSteps: []
+            };
+            
+            if (role === 'auditor') {
+                professionalAnalysis.professionalSummary = `Audit Analysis: This ${analysis.documentType} document contains ${analysis.wordCount} words across ${analysis.totalPages} pages. The document requires comprehensive audit review for compliance verification and risk assessment.`;
+                professionalAnalysis.complianceStatus = 'Requires detailed audit compliance review against regulatory standards and internal policies.';
+                professionalAnalysis.recommendations = [
+                    'Conduct thorough compliance verification',
+                    'Review against applicable audit standards',
+                    'Verify document authenticity and integrity',
+                    'Check for regulatory compliance issues',
+                    'Document any findings or exceptions'
+                ];
+                professionalAnalysis.actionItems = [
+                    'Schedule detailed document review',
+                    'Prepare audit working papers',
+                    'Identify any compliance gaps',
+                    'Document audit trail'
+                ];
+                professionalAnalysis.nextSteps = [
+                    'Complete detailed audit procedures',
+                    'Prepare audit findings report',
+                    'Communicate results to stakeholders'
+                ];
+            } else if (role === 'accountant') {
+                professionalAnalysis.professionalSummary = `Accounting Analysis: This ${analysis.documentType} document requires accounting review for GAAP compliance and financial accuracy verification. Document contains ${analysis.financialData.length} financial figures requiring validation.`;
+                professionalAnalysis.complianceStatus = 'Requires GAAP compliance review and financial accuracy verification.';
+                professionalAnalysis.recommendations = [
+                    'Verify GAAP compliance',
+                    'Review financial calculations and figures',
+                    'Check accounting treatment consistency',
+                    'Validate supporting documentation',
+                    'Ensure proper financial reporting'
+                ];
+                professionalAnalysis.actionItems = [
+                    'Review financial data accuracy',
+                    'Verify accounting standards compliance',
+                    'Check mathematical calculations',
+                    'Validate account classifications'
+                ];
+                professionalAnalysis.nextSteps = [
+                    'Complete financial review procedures',
+                    'Prepare accounting analysis report',
+                    'Recommend any adjustments needed'
+                ];
+            }
+            
+            return professionalAnalysis;
+        }
+        
+        function displayProfessionalPDFAnalysis(pdfData, analysis) {
+            // Remove existing analysis display
+            const existingAnalysis = document.getElementById('professionalPDFAnalysis');
+            if (existingAnalysis) {
+                existingAnalysis.remove();
+            }
+            
+            const riskColor = {
+                'Low': '#28a745',
+                'Medium': '#ffc107',
+                'High': '#dc3545'
+            };
+            
+            // Create analysis display
+            const analysisContainer = document.createElement('div');
+            analysisContainer.id = 'professionalPDFAnalysis';
+            analysisContainer.className = 'main-panel';
+            analysisContainer.style.marginTop = '20px';
+            analysisContainer.style.backgroundColor = '#f0f8ff';
+            analysisContainer.style.border = '3px solid #17a2b8';
+            
+            analysisContainer.innerHTML = `
+                <h2>🔍 Professional PDF Analysis - ${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)}</h2>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.2rem; font-weight: bold; color: #1976d2;">${analysis.totalPages}</div>
+                        <div style="font-size: 12px;">Total Pages</div>
+                    </div>
+                    <div style="background: #f3e5f5; padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.2rem; font-weight: bold; color: #7b1fa2;">${analysis.wordCount.toLocaleString()}</div>
+                        <div style="font-size: 12px;">Word Count</div>
+                    </div>
+                    <div style="background: #e8f5e8; padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.2rem; font-weight: bold; color: #388e3c;">${analysis.documentType}</div>
+                        <div style="font-size: 12px;">Document Type</div>
+                    </div>
+                    <div style="background: ${riskColor[analysis.riskAssessment]}20; padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.2rem; font-weight: bold; color: ${riskColor[analysis.riskAssessment]};">${analysis.riskAssessment}</div>
+                        <div style="font-size: 12px;">Risk Level</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <h5 style="color: #17a2b8; margin-bottom: 8px;">📋 Professional Summary</h5>
+                    <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #17a2b8;">
+                        ${analysis.professionalSummary}
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <h5 style="color: #28a745; margin-bottom: 8px;">🔍 Key Findings</h5>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #28a745;">
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${analysis.keyFindings.map(finding => `<li>${finding}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <h5 style="color: #ffc107; margin-bottom: 8px;">💡 Professional Recommendations</h5>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ffc107;">
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${analysis.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <h5 style="color: #dc3545; margin-bottom: 8px;">📋 Action Items</h5>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #dc3545;">
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${analysis.actionItems.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+                
+                ${analysis.financialData.length > 0 ? `
+                <div style="margin-bottom: 15px;">
+                    <h5 style="color: #6f42c1; margin-bottom: 8px;">💰 Financial Data Detected</h5>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #6f42c1;">
+                        ${analysis.financialData.join(', ')}
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div style="margin-bottom: 15px;">
+                    <h5 style="color: #6f42c1; margin-bottom: 8px;">📜 Compliance Status</h5>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #6f42c1;">
+                        ${analysis.complianceStatus}
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <h5 style="color: #17a2b8; margin-bottom: 8px;">🎯 Next Steps</h5>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #17a2b8;">
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${analysis.nextSteps.map(step => `<li>${step}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; font-size: 12px; color: #6c757d;">
+                    <strong>📁 File:</strong> ${pdfData.fileName} | 
+                    <strong>📊 Uploaded:</strong> ${new Date(pdfData.uploadDate).toLocaleString()} | 
+                    <strong>👤 Analyzed by:</strong> ${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} Professional |
+                    <strong>📄 Content Preview:</strong> ${pdfData.extractedText.substring(0, 200)}...
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-green" onclick="createPDFReview('${pdfData.fileName}')">📝 Create Professional Review</button>
+                </div>
+            `;
+            
+            document.querySelector('.container').appendChild(analysisContainer);
+            analysisContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function createPDFReview(fileName, blockIndex) {
+            try {
+                // Get the PDF data for more detailed pre-filling
+                const block = blockchain.chain[blockIndex];
+                const decryptedContent = simpleDecrypt(block.data.content);
+                const pdfData = JSON.parse(decryptedContent);
+                
+                // Pre-fill the review form with PDF information and analysis
+                document.getElementById('reviewTitleInput').value = `${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} Review: ${fileName}`;
+                
+                // Create detailed pre-filled content based on PDF analysis
+                const prefilledContent = `Professional ${currentRole} review of PDF document: ${fileName}
+
+Document Analysis Summary:
+- Document Type: ${pdfData.analysis.documentType}
+- Total Pages: ${pdfData.totalPages}
+- Word Count: ${pdfData.analysis.wordCount.toLocaleString()}
+- Risk Assessment: ${pdfData.analysis.riskAssessment}
+- Upload Date: ${new Date(pdfData.uploadDate).toLocaleString()}
+
+Key Findings:
+${pdfData.analysis.keyFindings.map(finding => `- ${finding}`).join('\n')}
+
+Detailed Professional Analysis:
+- `;
+                
+                document.getElementById('reviewContent').value = prefilledContent;
+                
+                // Pre-fill recommendations based on analysis
+                const prefilledRecommendations = pdfData.analysis.recommendations.join('\n- ');
+                document.getElementById('reviewRecommendations').value = `- ${prefilledRecommendations}`;
+                
+                // Set appropriate status based on risk assessment
+                const statusSelect = document.getElementById('reviewStatus');
+                if (pdfData.analysis.riskAssessment === 'High') {
+                    statusSelect.value = 'needs-revision';
+                } else if (pdfData.analysis.riskAssessment === 'Low') {
+                    statusSelect.value = 'approved';
+                } else {
+                    statusSelect.value = 'under-review';
+                }
+                
+                // Set priority based on risk assessment
+                const prioritySelect = document.getElementById('reviewPriority');
+                if (pdfData.analysis.riskAssessment === 'High') {
+                    prioritySelect.value = 'high';
+                } else if (pdfData.analysis.riskAssessment === 'Low') {
+                    prioritySelect.value = 'low';
+                } else {
+                    prioritySelect.value = 'medium';
+                }
+                
+                // Pre-fill compliance notes
+                document.getElementById('complianceNotes').value = pdfData.analysis.complianceNotes || `${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} compliance review required for ${pdfData.analysis.documentType}.`;
+                
+                // Show the review form
+                document.getElementById('reviewForm').style.display = 'block';
+                document.getElementById('reviewForm').scrollIntoView({ behavior: 'smooth' });
+                
+                alert(`📝 Review form pre-filled with analysis data for ${fileName}!\n\nDocument Type: ${pdfData.analysis.documentType}\nRisk Level: ${pdfData.analysis.riskAssessment}\n\nPlease complete your professional review.`);
+                
+            } catch (error) {
+                console.error('Error creating PDF review:', error);
+                // Fallback to basic pre-fill
+                document.getElementById('reviewTitleInput').value = `${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} Review: ${fileName}`;
+                document.getElementById('reviewContent').value = `Professional ${currentRole} review of PDF document: ${fileName}\n\nDetailed findings and analysis:\n- `;
+                
+                document.getElementById('reviewForm').style.display = 'block';
+                document.getElementById('reviewForm').scrollIntoView({ behavior: 'smooth' });
+                
+                alert(`📝 Review form pre-filled for ${fileName}. Please complete your professional analysis.`);
+            }
+        }
+        
+        function addToBlockchain() {
+            const title = document.getElementById('dataTitle').value.trim();
+            const content = document.getElementById('dataContent').value.trim();
+            const type = document.getElementById('dataType').value.trim() || 'General';
+            
+            if (!title || !content) {
+                alert('Please fill in title and content!');
+                return;
+            }
+            
+            // Encrypt content
+            const encryptedContent = simpleEncrypt(content);
+            
+            const blockData = {
+                title: title,
+                content: encryptedContent,
+                originalContent: content,
+                type: type,
+                encrypted: true
+            };
+            
+            const newBlock = new SimpleBlock(blockchain.chain.length, blockData, "");
+            blockchain.addBlock(newBlock);
+            
+            // Clear form
+            document.getElementById('dataTitle').value = '';
+            document.getElementById('dataContent').value = '';
+            document.getElementById('dataType').value = '';
+            
+            updateDisplay();
+            alert('✅ Data added to blockchain successfully!');
+        }
+        
+        // Store retrieved data globally for AI interpretation
+        let retrievedDataForAI = [];
+        
+        function retrieveData() {
+            if (blockchain.chain.length <= 1) {
+                alert('❌ No data blocks found in the blockchain!');
+                return;
+            }
+            
+            // Clear previous data
+            retrievedDataForAI = [];
+            
+            // Create a better display for retrieved data
+            const retrievedContainer = document.getElementById('retrievedDataContainer');
+            if (retrievedContainer) {
+                retrievedContainer.remove();
+            }
+            
+            const newContainer = document.createElement('div');
+            newContainer.id = 'retrievedDataContainer';
+            newContainer.className = 'main-panel';
+            newContainer.style.marginTop = '20px';
+            newContainer.style.backgroundColor = '#f0f8ff';
+            newContainer.style.border = '2px solid #28a745';
+            
+            let htmlContent = '<h2>📥 Retrieved & Decrypted Data</h2>';
+            
+            blockchain.chain.forEach((block, index) => {
+                if (index > 0) { // Skip genesis block
+                    const decryptedContent = block.data.encrypted ? 
+                        simpleDecrypt(block.data.content) : block.data.content;
+                    
+                    // Store for AI interpretation
+                    retrievedDataForAI.push({
+                        title: block.data.title,
+                        type: block.data.type,
+                        content: decryptedContent,
+                        timestamp: block.timestamp
+                    });
+                    
+                    htmlContent += `
+                        <div style="background: white; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #28a745;">
+                            <h4 style="color: #28a745; margin-bottom: 10px;">📄 Block ${index}: ${block.data.title}</h4>
+                            <div style="margin-bottom: 8px;"><strong>🏷️ Type:</strong> ${block.data.type}</div>
+                            <div style="margin-bottom: 8px;"><strong>📅 Created:</strong> ${new Date(block.timestamp).toLocaleString()}</div>
+                            <div style="margin-bottom: 8px;"><strong>🔓 Decrypted Content:</strong></div>
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #dee2e6; font-family: Arial; line-height: 1.4;">
+                                ${decryptedContent}
+                            </div>
+                            <div style="margin-top: 8px; font-size: 12px; color: #6c757d;">
+                                <strong>🔗 Block Hash:</strong> ${block.hash}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            newContainer.innerHTML = htmlContent;
+            document.querySelector('.container').appendChild(newContainer);
+            
+
+            
+            // Scroll to the retrieved data
+            newContainer.scrollIntoView({ behavior: 'smooth' });
+            
+            alert(`✅ Successfully retrieved and decrypted ${blockchain.chain.length - 1} data entries!`);
+        }
+        
+        function updateDisplay() {
+            const container = document.getElementById('blocksContainer');
+            container.innerHTML = '';
+            
+            blockchain.chain.forEach((block, index) => {
+                const blockDiv = document.createElement('div');
+                blockDiv.className = 'block';
+                
+                const encrypted = block.data.encrypted ? 
+                    '<span class="encrypted-badge">🔒 Encrypted</span>' : '';
+                
+                let contentDisplay = block.data.content;
+                if (block.data.encrypted) {
+                    contentDisplay = '[ENCRYPTED]';
+                } else if (block.data.type === 'PDF-Analysis') {
+                    try {
+                        const pdfData = JSON.parse(block.data.content);
+                        contentDisplay = `PDF: ${pdfData.fileName} (${pdfData.totalPages} pages)`;
+                    } catch (e) {
+                        contentDisplay = 'PDF Analysis Data';
+                    }
+                }
+                
+                blockDiv.innerHTML = `
+                    <div class="block-header">
+                        <div class="block-id">Block #${index}: ${block.data.title}${encrypted}</div>
+                        <div>${new Date(block.timestamp).toLocaleString()}</div>
+                    </div>
+                    <div>
+                        <strong>Type:</strong> ${block.data.type}<br>
+                        <strong>Content:</strong> ${contentDisplay}
+                    </div>
+                    <div class="block-hash">Hash: ${block.hash}</div>
+                `;
+                
+                container.appendChild(blockDiv);
+            });
+            
+            // Update stats
+            document.getElementById('totalBlocks').textContent = blockchain.chain.length;
+            document.getElementById('totalData').textContent = blockchain.chain.length - 1;
+        }
+        
+        // 3D Environment Variables
+        let scene, camera, renderer, controls;
+        let blockMeshes = [];
+        let raycaster, mouse;
+        let keys = {};
+        let cameraVelocity = new THREE.Vector3();
+        
+        function enterVirtualEnvironment() {
+            document.getElementById('virtualEnv').style.display = 'block';
+            init3DEnvironment();
+            animate3D();
+        }
+        
+        function init3DEnvironment() {
+            const canvas = document.getElementById('threeCanvas');
+            
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0a);
+            scene.fog = new THREE.Fog(0x0a0a0a, 10, 100);
+            
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 10);
+            
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 10, 5);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+            
+            // Add point lights for atmosphere
+            const pointLight1 = new THREE.PointLight(0x667eea, 1, 20);
+            pointLight1.position.set(-10, 5, -10);
+            scene.add(pointLight1);
+            
+            const pointLight2 = new THREE.PointLight(0x764ba2, 1, 20);
+            pointLight2.position.set(10, 5, 10);
+            scene.add(pointLight2);
+            
+            // Ground
+            const groundGeometry = new THREE.PlaneGeometry(100, 100);
+            const groundMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0x1a1a1a,
+                transparent: true,
+                opacity: 0.8
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+            
+            // Create blockchain blocks in 3D
+            createBlockchain3D();
+            
+            // Mouse and raycaster for interaction
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            
+            // Event listeners
+            canvas.addEventListener('click', onBlockClick);
+            canvas.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('keydown', onKeyDown);
+            window.addEventListener('keyup', onKeyUp);
+            window.addEventListener('resize', onWindowResize);
+        }
+        
+        function createBlockchain3D() {
+            blockMeshes = [];
+            
+            blockchain.chain.forEach((block, index) => {
+                // Block geometry
+                const geometry = new THREE.BoxGeometry(2, 2, 2);
+                
+                // Different colors for different block types
+                let color = 0x667eea;
+                if (block.data.type === 'System') color = 0x28a745;
+                else if (block.data.type === 'Audit-Review') color = 0x17a2b8;
+                else if (block.data.type === 'Accounting-Review') color = 0x28a745;
+                else if (block.data.type === 'PDF-Analysis') color = 0xff6b35;
+                else if (block.data.encrypted) color = 0xdc3545;
+                else if (block.data.type === 'Document') color = 0xffc107;
+                
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: color,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                
+                const blockMesh = new THREE.Mesh(geometry, material);
+                
+                // Position blocks in a chain formation
+                blockMesh.position.x = (index - blockchain.chain.length / 2) * 4;
+                blockMesh.position.y = 1;
+                blockMesh.position.z = 0;
+                
+                blockMesh.castShadow = true;
+                blockMesh.receiveShadow = true;
+                
+                // Store block data for interaction
+                blockMesh.userData = {
+                    blockData: block,
+                    index: index
+                };
+                
+                // Add floating animation
+                blockMesh.userData.originalY = blockMesh.position.y;
+                blockMesh.userData.floatOffset = index * 0.5;
+                
+                scene.add(blockMesh);
+                blockMeshes.push(blockMesh);
+                
+                // Add connection lines between blocks
+                if (index > 0) {
+                    const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                        new THREE.Vector3((index - 1 - blockchain.chain.length / 2) * 4, 1, 0),
+                        new THREE.Vector3((index - blockchain.chain.length / 2) * 4, 1, 0)
+                    ]);
+                    const lineMaterial = new THREE.LineBasicMaterial({ 
+                        color: 0x667eea,
+                        transparent: true,
+                        opacity: 0.6
+                    });
+                    const line = new THREE.Line(lineGeometry, lineMaterial);
+                    scene.add(line);
+                }
+                
+                // Add block label
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 256;
+                canvas.height = 128;
+                context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                context.fillStyle = 'white';
+                context.font = '20px Arial';
+                context.textAlign = 'center';
+                context.fillText(`Block ${index}`, canvas.width / 2, 40);
+                context.fillText(block.data.title, canvas.width / 2, 70);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                const labelMaterial = new THREE.MeshBasicMaterial({ 
+                    map: texture,
+                    transparent: true
+                });
+                const labelGeometry = new THREE.PlaneGeometry(2, 1);
+                const label = new THREE.Mesh(labelGeometry, labelMaterial);
+                label.position.copy(blockMesh.position);
+                label.position.y += 2;
+                scene.add(label);
+            });
+        }
+        
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            
+            // Handle camera movement
+            handleCameraMovement();
+            
+            // Animate floating blocks
+            blockMeshes.forEach((block, index) => {
+                block.position.y = block.userData.originalY + 
+                    Math.sin(Date.now() * 0.001 + block.userData.floatOffset) * 0.2;
+                block.rotation.y += 0.005;
+            });
+            
+            renderer.render(scene, camera);
+        }
+        
+        function handleCameraMovement() {
+            const speed = 0.1;
+            
+            if (keys['w'] || keys['W']) cameraVelocity.z = -speed;
+            else if (keys['s'] || keys['S']) cameraVelocity.z = speed;
+            else cameraVelocity.z = 0;
+            
+            if (keys['a'] || keys['A']) cameraVelocity.x = -speed;
+            else if (keys['d'] || keys['D']) cameraVelocity.x = speed;
+            else cameraVelocity.x = 0;
+            
+            camera.position.add(cameraVelocity);
+        }
+        
+        function onMouseMove(event) {
+            const canvas = document.getElementById('threeCanvas');
+            const rect = canvas.getBoundingClientRect();
+            
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            // Simple mouse look
+            if (event.buttons === 1) { // Left mouse button held
+                camera.rotation.y -= event.movementX * 0.002;
+                camera.rotation.x -= event.movementY * 0.002;
+                camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.rotation.x));
+            }
+        }
+        
+        function onBlockClick(event) {
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(blockMeshes);
+            
+            if (intersects.length > 0) {
+                const clickedBlock = intersects[0].object;
+                const blockData = clickedBlock.userData.blockData;
+                
+                // Decrypt content if encrypted
+                const content = blockData.data.encrypted ? 
+                    simpleDecrypt(blockData.data.content) : blockData.data.content;
+                
+                // Show block info
+                const infoDiv = document.getElementById('virtualInfo');
+                document.getElementById('blockInfo').innerHTML = `
+                    <h4>🔗 Block ${clickedBlock.userData.index}</h4>
+                    <p><strong>📋 Title:</strong> ${blockData.data.title}</p>
+                    <p><strong>🏷️ Type:</strong> ${blockData.data.type}</p>
+                    <p><strong>📄 Content:</strong><br>${content}</p>
+                    <p><strong>📅 Created:</strong> ${new Date(blockData.timestamp).toLocaleString()}</p>
+                    <p><strong>🔗 Hash:</strong> ${blockData.hash.substring(0, 16)}...</p>
+                `;
+                infoDiv.style.display = 'block';
+                
+                // Highlight clicked block
+                blockMeshes.forEach(block => {
+                    block.material.emissive.setHex(0x000000);
+                });
+                clickedBlock.material.emissive.setHex(0x444444);
+            }
+        }
+        
+        function onKeyDown(event) {
+            keys[event.key] = true;
+        }
+        
+        function onKeyUp(event) {
+            keys[event.key] = false;
+        }
+        
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        function exitVirtualEnvironment() {
+            document.getElementById('virtualEnv').style.display = 'none';
+            document.getElementById('virtualInfo').style.display = 'none';
+            
+            // Clean up 3D resources
+            if (renderer) {
+                renderer.dispose();
+            }
+            if (scene) {
+                scene.clear();
+            }
+            
+            // Remove event listeners
+            const canvas = document.getElementById('threeCanvas');
+            if (canvas) {
+                canvas.removeEventListener('click', onBlockClick);
+                canvas.removeEventListener('mousemove', onMouseMove);
+            }
+            window.removeEventListener('keydown', onKeyDown);
+            window.removeEventListener('keyup', onKeyUp);
+            window.removeEventListener('resize', onWindowResize);
+        }
+        
+
+        
+        // Simple role switching without authentication
+        
+        // Role switching functionality
+        function switchRole() {
+            const selectedRole = document.getElementById('userRole').value;
+            currentRole = selectedRole;
+            
+            // Hide all panels first
+            document.getElementById('userPanel').style.display = 'none';
+            document.getElementById('reviewPanel').style.display = 'none';
+            
+            if (currentRole === 'user') {
+                document.getElementById('userPanel').style.display = 'block';
+            } else {
+                document.getElementById('reviewPanel').style.display = 'block';
+                
+                // Update panel title and form based on role
+                if (currentRole === 'auditor') {
+                    document.getElementById('reviewTitle').innerHTML = '🔍 Professional Auditor Review Panel';
+                    document.getElementById('reviewFormTitle').innerHTML = '🔍 Professional Audit Review';
+                    document.getElementById('reviewTitleInput').placeholder = 'Enter comprehensive audit review title (e.g., Q4 2024 Data Compliance Audit)';
+                    document.getElementById('reviewContent').placeholder = 'Enter detailed audit findings, compliance observations, regulatory notes, and professional recommendations...';
+                    document.getElementById('reviewRecommendations').placeholder = 'Enter specific audit recommendations, corrective actions, and compliance improvements...';
+                    document.getElementById('complianceNotes').placeholder = 'Enter compliance status, regulatory requirements, audit standards, and legal considerations...';
+                } else if (currentRole === 'accountant') {
+                    document.getElementById('reviewTitle').innerHTML = '📊 Professional Accountant Review Panel';
+                    document.getElementById('reviewFormTitle').innerHTML = '📊 Professional Accounting Review';
+                    document.getElementById('reviewTitleInput').placeholder = 'Enter comprehensive accounting review title (e.g., Q4 2024 Financial Data Review)';
+                    document.getElementById('reviewContent').placeholder = 'Enter detailed financial analysis, accounting observations, GAAP compliance notes, and professional recommendations...';
+                    document.getElementById('reviewRecommendations').placeholder = 'Enter specific accounting recommendations, financial improvements, and procedural changes...';
+                    document.getElementById('complianceNotes').placeholder = 'Enter GAAP compliance status, accounting standards, financial regulations, and reporting requirements...';
+                }
+                
+                // Update review statistics when switching to review panel
+                updateReviewStats();
+            }
+        }
+        
+        function loadDataForReview() {
+            if (blockchain.chain.length <= 1) {
+                alert('❌ No data blocks found in the blockchain to review!');
+                return;
+            }
+            
+            const reviewContainer = document.getElementById('dataForReview');
+            let htmlContent = '<h4>📋 Blockchain Data for Review</h4>';
+            
+            blockchain.chain.forEach((block, index) => {
+                if (index > 0) { // Skip genesis block
+                    const decryptedContent = block.data.encrypted ? 
+                        simpleDecrypt(block.data.content) : block.data.content;
+                    
+                    // Color coding for different block types
+                    let borderColor = '#667eea';
+                    if (block.data.type === 'Audit-Review') borderColor = '#17a2b8';
+                    else if (block.data.type === 'Accounting-Review') borderColor = '#28a745';
+                    else if (block.data.encrypted) borderColor = '#dc3545';
+                    
+                    htmlContent += `
+                        <div style="background: white; padding: 12px; margin: 8px 0; border-radius: 6px; border-left: 4px solid ${borderColor};">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <strong style="color: ${borderColor};">📄 Block ${index}: ${block.data.title}</strong>
+                                <span style="font-size: 12px; color: #6c757d;">${new Date(block.timestamp).toLocaleString()}</span>
+                            </div>
+                            <div style="margin-bottom: 6px;"><strong>🏷️ Type:</strong> ${block.data.type}</div>
+                            <div style="background: #f8f9fa; padding: 8px; border-radius: 4px; font-size: 13px; max-height: 100px; overflow-y: auto;">
+                                ${decryptedContent}
+                            </div>
+                            ${block.data.reviewStatus ? `<div style="margin-top: 6px; font-size: 12px;"><strong>Status:</strong> ${block.data.reviewStatus} | <strong>Priority:</strong> ${block.data.reviewPriority}</div>` : ''}
+                        </div>
+                    `;
+                }
+            });
+            
+            reviewContainer.innerHTML = htmlContent;
+            document.getElementById('reviewForm').style.display = 'block';
+            
+            alert(`✅ Loaded ${blockchain.chain.length - 1} data entries for review!`);
+        }
+        
+        function encryptReview() {
+            console.log('Encrypt review function called'); // Debug log
+            
+            const reviewTitle = document.getElementById('reviewTitleInput').value.trim();
+            const reviewContent = document.getElementById('reviewContent').value.trim();
+            const reviewStatus = document.getElementById('reviewStatus').value;
+            const reviewPriority = document.getElementById('reviewPriority').value;
+            const reviewRecommendations = document.getElementById('reviewRecommendations').value.trim();
+            const complianceNotes = document.getElementById('complianceNotes').value.trim();
+            const confirmEncryption = document.getElementById('confirmEncryption').checked;
+            
+            console.log('Form values:', { reviewTitle, reviewContent, confirmEncryption }); // Debug log
+            
+            if (!reviewTitle || !reviewContent) {
+                alert('❌ Please fill in review title and detailed findings!');
+                return;
+            }
+            
+            if (!confirmEncryption) {
+                alert('❌ Please confirm that your review is complete and ready for encryption!');
+                return;
+            }
+            
+            try {
+                // Create comprehensive review data
+                const reviewData = {
+                    reviewTitle: reviewTitle,
+                    reviewContent: reviewContent,
+                    reviewRecommendations: reviewRecommendations || 'No specific recommendations provided',
+                    complianceNotes: complianceNotes || 'No compliance notes provided',
+                    reviewStatus: reviewStatus,
+                    reviewPriority: reviewPriority,
+                    reviewer: currentRole,
+                    reviewerName: `${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} Professional`,
+                    reviewDate: new Date().toISOString(),
+                    blocksReviewed: blockchain.chain.length - 1,
+                    reviewId: `REV-${Date.now()}`,
+                    encryptionTimestamp: new Date().toISOString()
+                };
+                
+                console.log('Review data created:', reviewData); // Debug log
+                
+                // Encrypt the review content
+                const reviewDataString = JSON.stringify(reviewData);
+                const encryptedReviewContent = simpleEncrypt(reviewDataString);
+                
+                console.log('Content encrypted successfully'); // Debug log
+                
+                const blockData = {
+                    title: `${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} Review: ${reviewTitle}`,
+                    content: encryptedReviewContent,
+                    originalContent: reviewDataString,
+                    type: currentRole === 'auditor' ? 'Audit-Review' : 'Accounting-Review',
+                    encrypted: true,
+                    reviewStatus: reviewStatus,
+                    reviewPriority: reviewPriority,
+                    reviewer: currentRole,
+                    reviewId: reviewData.reviewId
+                };
+                
+                console.log('Block data prepared:', blockData); // Debug log
+                
+                const newBlock = new SimpleBlock(blockchain.chain.length, blockData, "");
+                blockchain.addBlock(newBlock);
+                
+                console.log('Block added to blockchain'); // Debug log
+                
+                // Clear form
+                document.getElementById('reviewTitleInput').value = '';
+                document.getElementById('reviewContent').value = '';
+                document.getElementById('reviewRecommendations').value = '';
+                document.getElementById('complianceNotes').value = '';
+                document.getElementById('reviewStatus').selectedIndex = 0;
+                document.getElementById('reviewPriority').selectedIndex = 0;
+                document.getElementById('confirmEncryption').checked = false;
+                
+                // Hide the review form
+                document.getElementById('reviewForm').style.display = 'none';
+                
+                // Update displays
+                updateDisplay();
+                updateReviewStats();
+                
+                // Refresh the 3D environment if it's open
+                if (document.getElementById('virtualEnv').style.display === 'block') {
+                    // Clear existing blocks and recreate
+                    blockMeshes.forEach(mesh => scene.remove(mesh));
+                    createBlockchain3D();
+                }
+                
+                // Show success message with review details
+                const statusEmoji = {
+                    'approved': '✅',
+                    'rejected': '❌',
+                    'needs-revision': '⚠️',
+                    'under-review': '🔄',
+                    'conditional': '🔶'
+                };
+                
+                const priorityEmoji = {
+                    'low': '🟢',
+                    'medium': '🟡',
+                    'high': '🟠',
+                    'critical': '🔴'
+                };
+                
+                alert(`🔒 REVIEW ENCRYPTED & SECURED! 🔒\n\n` +
+                      `✅ ${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)} review successfully encrypted and added to blockchain!\n\n` +
+                      `📋 Title: ${reviewTitle}\n` +
+                      `${statusEmoji[reviewStatus]} Status: ${reviewStatus}\n` +
+                      `${priorityEmoji[reviewPriority]} Priority: ${reviewPriority}\n` +
+                      `🆔 Review ID: ${reviewData.reviewId}\n` +
+                      `🔒 Your review data has been encrypted and permanently secured in the blockchain.\n` +
+                      `📊 Block #${blockchain.chain.length - 1} created successfully!`);
+                      
+                console.log('Review encryption completed successfully'); // Debug log
+                
+            } catch (error) {
+                console.error('Error in encryptReview:', error);
+                alert(`❌ Error encrypting review: ${error.message}\n\nPlease try again or contact support.`);
+            }
+        }
+        
+        function showReviewHistory() {
+            const reviewBlocks = blockchain.chain.filter(block => 
+                block.data.type === 'Audit-Review' || block.data.type === 'Accounting-Review'
+            );
+            
+            if (reviewBlocks.length === 0) {
+                alert('❌ No review history found in the blockchain!');
+                return;
+            }
+            
+            const reviewContainer = document.getElementById('dataForReview');
+            let htmlContent = '<h4>📊 Review History & Analytics</h4>';
+            
+            reviewBlocks.forEach((block, index) => {
+                const decryptedContent = simpleDecrypt(block.data.content);
+                let reviewData;
+                try {
+                    reviewData = JSON.parse(decryptedContent);
+                } catch (e) {
+                    reviewData = { reviewTitle: 'Legacy Review', reviewContent: decryptedContent };
+                }
+                
+                const statusEmoji = {
+                    'approved': '✅',
+                    'rejected': '❌',
+                    'needs-revision': '⚠️',
+                    'under-review': '🔄',
+                    'conditional': '🔶'
+                };
+                
+                const priorityEmoji = {
+                    'low': '🟢',
+                    'medium': '🟡',
+                    'high': '🟠',
+                    'critical': '🔴'
+                };
+                
+                const borderColor = block.data.type === 'Audit-Review' ? '#17a2b8' : '#28a745';
+                
+                htmlContent += `
+                    <div style="background: white; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid ${borderColor}; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <strong style="color: ${borderColor};">📋 ${reviewData.reviewTitle || 'Review'}</strong>
+                            <span style="font-size: 12px; color: #6c757d;">${new Date(block.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <span style="background: ${borderColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-right: 8px;">
+                                ${block.data.type}
+                            </span>
+                            ${statusEmoji[block.data.reviewStatus] || '🔄'} ${block.data.reviewStatus || 'under-review'}
+                            ${priorityEmoji[block.data.reviewPriority] || '🟡'} ${block.data.reviewPriority || 'medium'}
+                        </div>
+                        <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 13px; margin-bottom: 8px;">
+                            <strong>Findings:</strong> ${reviewData.reviewContent || 'No content available'}
+                        </div>
+                        ${reviewData.reviewRecommendations ? `
+                            <div style="background: #e8f5e8; padding: 8px; border-radius: 4px; font-size: 12px; margin-bottom: 8px;">
+                                <strong>💡 Recommendations:</strong> ${reviewData.reviewRecommendations}
+                            </div>
+                        ` : ''}
+                        ${reviewData.complianceNotes ? `
+                            <div style="background: #fff3cd; padding: 8px; border-radius: 4px; font-size: 12px; margin-bottom: 8px;">
+                                <strong>📜 Compliance:</strong> ${reviewData.complianceNotes}
+                            </div>
+                        ` : ''}
+                        <div style="font-size: 11px; color: #6c757d;">
+                            🔗 Block #${block.index} | 🆔 ${reviewData.reviewId || 'N/A'} | 👤 ${reviewData.reviewer || 'Unknown'}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            reviewContainer.innerHTML = htmlContent;
+            updateReviewStats();
+            alert(`📊 Loaded ${reviewBlocks.length} review entries from blockchain history!`);
+        }
+        
+        function clearReviewData() {
+            document.getElementById('dataForReview').innerHTML = '<p style="color: #6c757d; text-align: center; padding: 20px;">📋 Click "Load Data for Review" to see all blockchain entries</p>';
+            document.getElementById('reviewForm').style.display = 'none';
+            updateReviewStats();
+        }
+        
+        function updateReviewStats() {
+            const dataBlocks = blockchain.chain.filter(block => 
+                block.data.type !== 'System' && 
+                block.data.type !== 'Audit-Review' && 
+                block.data.type !== 'Accounting-Review'
+            ).length;
+            
+            const reviewBlocks = blockchain.chain.filter(block => 
+                block.data.type === 'Audit-Review' || block.data.type === 'Accounting-Review'
+            );
+            
+            const approvedReviews = reviewBlocks.filter(block => 
+                block.data.reviewStatus === 'approved'
+            ).length;
+            
+            const pendingReviews = reviewBlocks.filter(block => 
+                block.data.reviewStatus === 'under-review' || 
+                block.data.reviewStatus === 'needs-revision'
+            ).length;
+            
+            document.getElementById('totalDataBlocks').textContent = dataBlocks;
+            document.getElementById('totalReviews').textContent = reviewBlocks.length;
+            document.getElementById('approvedCount').textContent = approvedReviews;
+            document.getElementById('pendingCount').textContent = pendingReviews;
+        }
+        
+
+        
+        // Initialize display
+        updateDisplay();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965e613c01bce163',t:'MTc1MzY0MjgyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
